@@ -45,7 +45,7 @@ const Globe: React.FC = () => {
     }
     
     let rotationTimer: Timer | null = null;
-    let currentRotation: [number, number, number] = [0, -30, 0];
+    let currentRotation: [number, number, number] = [0, -20, 0];
 
     const projection: GeoProjection = d3.geoOrthographic();
     const path: GeoPath = d3.geoPath(projection, context);
@@ -114,7 +114,7 @@ const Globe: React.FC = () => {
     const startRotation = () => {
       rotationTimer?.stop();
       rotationTimer = d3.timer(() => {
-        currentRotation[0] += 0.1;
+        currentRotation[0] -= 0.5;
         drawGlobe();
       });
     };
