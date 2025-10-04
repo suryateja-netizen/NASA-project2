@@ -1,0 +1,5 @@
+{
+  "name": "Interactive 3D World Globe",
+  "description": "An interactive, animated 3D globe of the Earth, showcasing all countries. You can rotate the globe by dragging and see country names by hovering over them.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,27 @@
+{
+  "name": "interactive-3d-world-globe",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "geojson": "^0.5.0",
+    "d3": "^7.9.0",
+    "topojson-client": "^3.1.0",
+    "d3-drag": "^3.0.0",
+    "d3-geo": "^3.1.1",
+    "d3-timer": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}
