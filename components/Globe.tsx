@@ -7,10 +7,16 @@ import type { DragBehavior } from 'd3-drag';
 import type { Timer } from 'd3-timer';
 import type { FeatureCollection } from 'geojson';
 
-const Globe: React.FC = () => {
+interface GlobeProps {
+  searchCountry: string | null;
+  onSearchComplete: () => void;
+}
+
+const Globe: React.FC<GlobeProps> = ({ searchCountry, onSearchComplete }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; name: string } | null>(null);
   const hoveredCountryRef = useRef<Country | null>(null);
+  const countriesRef = useRef<Country[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -31,6 +37,7 @@ const Globe: React.FC = () => {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.scale(devicePixelRatio, devicePixelRatio);
+      drawGlobe();
     });
     
     if (canvas.parentElement) {
@@ -42,9 +49,9 @@ const Globe: React.FC = () => {
         context.scale(devicePixelRatio, devicePixelRatio);
     }
     
-    let countries: Country[] = [];
     let rotationTimer: Timer | null = null;
     let currentRotation: [number, number, number] = [0, -30, 0];
+    let searchAnimationTimer: Timer | null = null;
 
     const projection: GeoProjection = d3.geoOrthographic();
     const path: GeoPath = d3.geoPath(projection, context);
@@ -54,7 +61,7 @@ const Globe: React.FC = () => {
 
     const drawGlobe = () => {
       if (!context) return;
-      const scale = Math.min(width, height) / 2.2;
+      const scale = Math.min(width, height) / 3;
       projection.fitSize([width, height], sphere);
       projection.scale(scale);
       projection.translate([width / 2, height / 2]);
@@ -62,14 +69,12 @@ const Globe: React.FC = () => {
 
       context.clearRect(0, 0, width, height);
       
-      // 1. Atmosphere effect
       const atmosphereGradient = context.createRadialGradient(width / 2, height / 2, scale, width / 2, height / 2, scale * 1.1);
       atmosphereGradient.addColorStop(0, 'rgba(52, 144, 220, 0.4)');
       atmosphereGradient.addColorStop(1, 'rgba(52, 144, 220, 0)');
       context.fillStyle = atmosphereGradient;
       context.fillRect(0, 0, width, height);
 
-      // 2. Ocean
       const oceanGradient = context.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, scale);
       oceanGradient.addColorStop(0, '#4f94d4');
       oceanGradient.addColorStop(1, '#0c2d48');
@@ -78,34 +83,30 @@ const Globe: React.FC = () => {
       path(sphere);
       context.fill();
       
-      // 3. Graticules (faint)
       context.strokeStyle = 'rgba(255, 255, 255, 0.15)';
       context.lineWidth = 0.5;
       context.beginPath();
       path(graticule);
       context.stroke();
 
-      // 4. Land
-      context.fillStyle = '#677D42'; // Earthy green/brown
-      context.strokeStyle = '#283618'; // Darker border for definition
+      context.fillStyle = '#677D42';
+      context.strokeStyle = '#283618';
       context.lineWidth = 0.5;
       
-      countries.forEach(country => {
+      countriesRef.current.forEach(country => {
         context.beginPath();
         path(country);
         context.fill();
         context.stroke();
       });
 
-      // 5. Highlighted country
       if (hoveredCountryRef.current) {
-        context.fillStyle = 'rgba(163, 230, 53, 0.7)'; // Semi-transparent lime
+        context.fillStyle = 'rgba(163, 230, 53, 0.7)';
         context.beginPath();
         path(hoveredCountryRef.current);
         context.fill();
       }
 
-      // 6. Specular Highlight (sun reflection)
       const lightSource = {x: width * 0.4, y: height * 0.4};
       const specularGradient = context.createRadialGradient(lightSource.x, lightSource.y, 0, lightSource.x, lightSource.y, scale * 0.4);
       specularGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
@@ -118,20 +119,21 @@ const Globe: React.FC = () => {
     
     const startRotation = () => {
       rotationTimer?.stop();
-      rotationTimer = d3.timer(elapsed => {
-        const rotateSpeed = 0.1;
-        currentRotation[0] += rotateSpeed;
+      rotationTimer = d3.timer(() => {
+        currentRotation[0] += 0.1;
         drawGlobe();
       });
     };
     
     const stopRotation = () => {
       rotationTimer?.stop();
+      searchAnimationTimer?.stop();
     };
 
     const drag: DragBehavior<HTMLCanvasElement, unknown, unknown> = d3.drag<HTMLCanvasElement, unknown>()
       .on('start', (event) => {
         stopRotation();
+        hoveredCountryRef.current = null;
       })
       .on('drag', (event) => {
         const k = 50 / projection.scale();
@@ -150,7 +152,7 @@ const Globe: React.FC = () => {
         const coords = projection.invert([offsetX, offsetY]);
 
         if (coords) {
-            const foundCountry = countries.find(c => d3.geoContains(c, coords));
+            const foundCountry = countriesRef.current.find(c => d3.geoContains(c, coords));
             if (foundCountry) {
                 if (hoveredCountryRef.current !== foundCountry) {
                     hoveredCountryRef.current = foundCountry;
@@ -181,19 +183,56 @@ const Globe: React.FC = () => {
     d3.json<WorldAtlas>('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
       .then(world => {
         if (world) {
-          countries = (topojson.feature(world, world.objects.countries) as unknown as FeatureCollection).features as Country[];
+          countriesRef.current = (topojson.feature(world, world.objects.countries) as unknown as FeatureCollection).features as Country[];
           startRotation();
         }
       });
+    
+    const searchEffect = () => {
+        if (!searchCountry || countriesRef.current.length === 0) return;
+
+        const countryToFind = countriesRef.current.find(
+            c => c.properties.name.toLowerCase() === searchCountry.toLowerCase()
+        );
+
+        if (countryToFind) {
+            stopRotation();
+            const targetCentroid = d3.geoCentroid(countryToFind);
+            const targetRotation: [number, number] = [-targetCentroid[0], -targetCentroid[1]];
+            
+            const interpolator = d3.interpolate(projection.rotate(), targetRotation);
+            const animationDuration = 1250;
+
+            searchAnimationTimer = d3.timer(elapsed => {
+                const t = d3.easeCubic(Math.min(1, elapsed / animationDuration));
+                const newRotation = interpolator(t);
+                currentRotation[0] = newRotation[0];
+                currentRotation[1] = newRotation[1];
+                
+                drawGlobe();
+
+                if (t >= 1) {
+                    searchAnimationTimer?.stop();
+                    hoveredCountryRef.current = countryToFind;
+                    drawGlobe();
+                    onSearchComplete();
+                }
+            });
+        } else {
+            alert(`Country "${searchCountry}" not found.`);
+            onSearchComplete();
+        }
+    }
+    searchEffect();
       
     return () => {
-      rotationTimer?.stop();
+      stopRotation();
       resizeObserver.disconnect();
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseout', handleMouseOut);
       d3.select(canvas).on('.drag', null);
     };
-  }, []);
+  }, [searchCountry, onSearchComplete]);
 
   return (
     <div className="w-full h-full relative cursor-move">
