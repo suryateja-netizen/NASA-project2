@@ -7,12 +7,7 @@ import type { DragBehavior } from 'd3-drag';
 import type { Timer } from 'd3-timer';
 import type { FeatureCollection } from 'geojson';
 
-interface GlobeProps {
-  searchCountry: string | null;
-  onSearchComplete: () => void;
-}
-
-const Globe: React.FC<GlobeProps> = ({ searchCountry, onSearchComplete }) => {
+const Globe: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; name: string } | null>(null);
   const hoveredCountryRef = useRef<Country | null>(null);
@@ -51,7 +46,6 @@ const Globe: React.FC<GlobeProps> = ({ searchCountry, onSearchComplete }) => {
     
     let rotationTimer: Timer | null = null;
     let currentRotation: [number, number, number] = [0, -30, 0];
-    let searchAnimationTimer: Timer | null = null;
 
     const projection: GeoProjection = d3.geoOrthographic();
     const path: GeoPath = d3.geoPath(projection, context);
@@ -127,7 +121,6 @@ const Globe: React.FC<GlobeProps> = ({ searchCountry, onSearchComplete }) => {
     
     const stopRotation = () => {
       rotationTimer?.stop();
-      searchAnimationTimer?.stop();
     };
 
     const drag: DragBehavior<HTMLCanvasElement, unknown, unknown> = d3.drag<HTMLCanvasElement, unknown>()
@@ -187,43 +180,6 @@ const Globe: React.FC<GlobeProps> = ({ searchCountry, onSearchComplete }) => {
           startRotation();
         }
       });
-    
-    const searchEffect = () => {
-        if (!searchCountry || countriesRef.current.length === 0) return;
-
-        const countryToFind = countriesRef.current.find(
-            c => c.properties.name.toLowerCase() === searchCountry.toLowerCase()
-        );
-
-        if (countryToFind) {
-            stopRotation();
-            const targetCentroid = d3.geoCentroid(countryToFind);
-            const targetRotation: [number, number] = [-targetCentroid[0], -targetCentroid[1]];
-            
-            const interpolator = d3.interpolate(projection.rotate(), targetRotation);
-            const animationDuration = 1250;
-
-            searchAnimationTimer = d3.timer(elapsed => {
-                const t = d3.easeCubic(Math.min(1, elapsed / animationDuration));
-                const newRotation = interpolator(t);
-                currentRotation[0] = newRotation[0];
-                currentRotation[1] = newRotation[1];
-                
-                drawGlobe();
-
-                if (t >= 1) {
-                    searchAnimationTimer?.stop();
-                    hoveredCountryRef.current = countryToFind;
-                    drawGlobe();
-                    onSearchComplete();
-                }
-            });
-        } else {
-            alert(`Country "${searchCountry}" not found.`);
-            onSearchComplete();
-        }
-    }
-    searchEffect();
       
     return () => {
       stopRotation();
@@ -232,7 +188,7 @@ const Globe: React.FC<GlobeProps> = ({ searchCountry, onSearchComplete }) => {
       canvas.removeEventListener('mouseout', handleMouseOut);
       d3.select(canvas).on('.drag', null);
     };
-  }, [searchCountry, onSearchComplete]);
+  }, []);
 
   return (
     <div className="w-full h-full relative cursor-move">

@@ -1,49 +1,56 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Globe from './components/Globe';
 
+const dataOptions = [
+  {
+    title: 'About Terra',
+    description: 'An introduction to the database and the project\'s mission to provide accessible environmental insights.',
+  },
+  {
+    title: 'Vegetation Shifts',
+    description: 'Explore dynamic visualizations of changing global vegetation patterns and understand their climatic impact.',
+  },
+  {
+    title: 'Land Temperature Trends',
+    description: 'Analyze historical and current land temperature variations across the globe with detailed heatmaps.',
+  },
+  {
+    title: 'Annual Extremes',
+    description: 'Focus on yearly high and low temperature records and other significant climatic events.',
+  },
+];
+
 const App: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchCountry, setSearchCountry] = useState<string | null>(null);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      setSearchCountry(searchTerm.trim());
-    }
-  };
-
-  const handleSearchComplete = () => {
-    setSearchCountry(null);
-    // Keep the search term in the box to show what was searched
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white font-sans overflow-hidden">
-      <header className="absolute top-0 left-0 right-0 p-6 text-center z-10">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300">
-          TerraAnima: Celebrating a World of Data
-        </h1>
-        <p className="mt-2 text-lg text-gray-400">Drag to rotate, hover to explore, or search for a country.</p>
-        <form onSubmit={handleSearch} className="mt-4 max-w-sm mx-auto flex" role="search">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="e.g., Brazil"
-            className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-l-md focus:outline-none focus:ring-2 focus:ring-teal-400 text-white transition-colors"
-            aria-label="Search for a country"
-          />
-          <button
-            type="submit"
-            className="px-4 py-2 bg-teal-600 hover:bg-teal-500 rounded-r-md focus:outline-none focus:ring-2 focus:ring-teal-400 transition-colors"
-            aria-label="Search"
-          >
-            Search
-          </button>
-        </form>
-      </header>
-      <main className="w-full h-screen flex items-center justify-center">
-        <Globe searchCountry={searchCountry} onSearchComplete={handleSearchComplete} />
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-black text-white font-sans overflow-hidden">
+      <div className="w-full md:w-1/2 lg:w-2/5 p-8 md:p-12 z-10">
+        <header className="mb-8 text-center md:text-left">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300">
+            From Space to Earth
+          </h1>
+          <p className="mt-4 text-lg text-gray-400">
+            Journey from a cosmic perspective to detailed terrestrial data. Select a dataset to begin your exploration of Terra's environmental insights.
+          </p>
+        </header>
+
+        <nav className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {dataOptions.map((option) => (
+            <div
+              key={option.title}
+              className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-5 cursor-pointer transition-all hover:border-teal-400 hover:bg-gray-800/60"
+              role="button"
+              tabIndex={0}
+              aria-label={`Explore ${option.title}`}
+            >
+              <h2 className="text-xl font-bold text-teal-300">{option.title}</h2>
+              <p className="mt-2 text-gray-400 text-sm">{option.description}</p>
+            </div>
+          ))}
+        </nav>
+      </div>
+
+      <main className="w-full md:w-1/2 lg:w-3/5 h-screen flex items-center justify-center -ml-0 md:-ml-24 lg:-ml-32">
+        <Globe />
       </main>
     </div>
   );
