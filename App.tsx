@@ -93,8 +93,6 @@ const App: React.FC = () => {
                   <a
                     key={option.title}
                     href={option.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className={cardClasses}
                     aria-label={`Explore ${option.title}`}
                   >
