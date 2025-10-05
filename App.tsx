@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Globe from "./components/Globe";
 import LandingPage from "./components/LandingPage";
 import DataView from "./components/DataView";
+import AboutTerraView from "./components/AboutTerraView";
 import {
   Globe2,
   Leaf,
@@ -49,7 +50,7 @@ interface SelectedData {
 
 const App: React.FC = () => {
   const [showLanding, setShowLanding] = useState(true);
-  const [activeView, setActiveView] = useState<'main' | 'data_view'>('main');
+  const [activeView, setActiveView] = useState<'main' | 'data_view' | 'about_terra_view'>('main');
   const [selectedData, setSelectedData] = useState<SelectedData | null>(null);
 
   useEffect(() => {
@@ -61,7 +62,9 @@ const App: React.FC = () => {
   }, []);
 
   const handleCardClick = (option: DataOption) => {
-    if (option.url) {
+    if (option.title === "About Terra") {
+      setActiveView('about_terra_view');
+    } else if (option.url) {
       setSelectedData({ title: option.title, url: option.url });
       setActiveView('data_view');
     }
@@ -150,6 +153,15 @@ const App: React.FC = () => {
               onBack={handleBack}
             />
           )}
+        </div>
+
+        {/* About Terra View */}
+        <div
+          className={`absolute inset-0 transition-opacity duration-500 ${
+            activeView === 'about_terra_view' ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <AboutTerraView onBack={handleBack} />
         </div>
       </div>
     </>
