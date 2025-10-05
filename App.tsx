@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Globe from "./components/Globe";
 import LandingPage from "./components/LandingPage";
@@ -25,6 +24,7 @@ const dataOptions = [
     title: "Land Temperature Trends",
     icon: ThermometerSun,
     description: "Explore rising and falling temperatures.",
+    url: "https://space-data-explorer.lovable.app/",
   },
   {
     title: "Annual Extremes",
@@ -70,23 +70,51 @@ const App: React.FC = () => {
 
           {/* Dataset cards */}
           <nav className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {dataOptions.map((option) => (
-              <div
-                key={option.title}
-                className="group bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-5 cursor-pointer transition-all hover:border-teal-400 hover:bg-gray-800/60 hover:shadow-lg"
-                role="button"
-                tabIndex={0}
-                aria-label={`Explore ${option.title}`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <option.icon className="w-6 h-6 text-teal-300 transition-transform duration-300 group-hover:scale-110" />
-                  <h2 className="text-xl font-bold text-teal-300">
-                    {option.title}
-                  </h2>
+            {dataOptions.map((option) => {
+              const cardClasses =
+                "group bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-5 cursor-pointer transition-all hover:border-teal-400 hover:bg-gray-800/60 hover:shadow-lg";
+
+              const cardContent = (
+                <>
+                  <div className="flex items-center gap-3 mb-2">
+                    <option.icon className="w-6 h-6 text-teal-300 transition-transform duration-300 group-hover:scale-110" />
+                    <h2 className="text-xl font-bold text-teal-300">
+                      {option.title}
+                    </h2>
+                  </div>
+                  <p className="text-gray-400 text-sm">
+                    {option.description}
+                  </p>
+                </>
+              );
+
+              if ('url' in option && option.url) {
+                return (
+                  <a
+                    key={option.title}
+                    href={option.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cardClasses}
+                    aria-label={`Explore ${option.title}`}
+                  >
+                    {cardContent}
+                  </a>
+                );
+              }
+
+              return (
+                <div
+                  key={option.title}
+                  className={cardClasses}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Explore ${option.title}`}
+                >
+                  {cardContent}
                 </div>
-                <p className="text-gray-400 text-sm">{option.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </nav>
         </div>
 
