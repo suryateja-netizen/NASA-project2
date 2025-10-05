@@ -33,6 +33,7 @@ const dataOptions = [
     title: "Annual Extremes",
     icon: Activity,
     description: "Identify extreme weather and climate events.",
+    url: "https://astro-climate-analyzer.lovable.app",
   },
 ];
 
