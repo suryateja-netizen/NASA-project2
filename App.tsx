@@ -20,6 +20,7 @@ const dataOptions = [
     title: "Vegetation Shifts",
     icon: Leaf,
     description: "Visualize changes in global vegetation.",
+    url: "https://astro-data-viewer.lovable.app",
   },
   {
     title: "Land Temperature Trends",
